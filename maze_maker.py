@@ -2,16 +2,6 @@
 
 import random
 
-""" CELL = 15
-NORTH = 1
-EAST = 2
-SOUTH = 4
-WEST = 8
-
-opposite = {NORTH: SOUTH,
-            EAST: WEST,
-            SOUTH: NORTH,
-            WEST: EAST} """
 
 def create_grid(width: int, height: int) -> tuple[list[list[int]], list[list[bool]]]:
     grid = []
@@ -31,41 +21,64 @@ def carve_maze(
         maze: tuple[list[list[int]], list[list[bool]]],
         entry: tuple[int, int], exit: tuple[int, int]):
     grid, visited = maze
-    entry_y, entry_x = entry
+    entry_x, entry_y = entry
     been_here_stack: list[tuple[int, int]] = []
-    been_here_stack.append((entry_x, entry_y))
+    been_here_stack.append((entry_y, entry_x))
     visited[entry_y][entry_x] = True
-    for y in range(len(grid)):
-        for x in range(len(grid[0])):
-            neighbours: list[tuple[int, int, int]] = []
-            # check NORTHERN neighbour
-            if y > 0 and not visited[y - 1][x]:
-                neighbours.append((x, y - 1, 1))
-            # check SOUTHERN neighbour
-            if y < (len(grid) - 1) and not visited[y + 1][x]:
-                neighbours.append((x, y + 1, 4))
-            # check EASTERN neighbour
-            if x < (len(grid[0]) - 1) and not visited[y][x + 1]:
-                neighbours.append((x + 1, y, 2))
-            # check WESTERN neighbour
-            if x > 0 and not visited[y][x - 1]:
-                neighbours.append((x - 1, y, 8))
-            if not neighbours:
-                # backtracking
-            else:
-                random.choice(neighbours)
+    while been_here_stack:
+        current_cell = been_here_stack[-1]
+        curr_y, curr_x = current_cell
+        neighbours: list[tuple[int, int, int]] = []
+        # check NORTHERN neighbour
+        if curr_y > 0 and not visited[curr_y - 1][curr_x]:
+            neighbours.append((curr_y - 1, curr_x, 1))
+        # check SOUTHERN neighbour
+        if curr_y < (len(grid) - 1) and not visited[curr_y + 1][curr_x]:
+            neighbours.append((curr_y + 1, curr_x, 4))
+        # check EASTERN neighbour
+        if curr_x < (len(grid[0]) - 1) and not visited[curr_y][curr_x + 1]:
+            neighbours.append((curr_y, curr_x + 1, 2))
+        # check WESTERN neighbour
+        if curr_x > 0 and not visited[curr_y][curr_x - 1]:
+            neighbours.append((curr_y, curr_x - 1, 8))
+        if not neighbours:
+            been_here_stack.pop()
+        else:
+            step = random.choice(neighbours)
+            step_y, step_x, direc = step
+            been_here_stack.append((step_y, step_x))
+            visited[step_y][step_x] = True
+            if direc == 1:
+                grid[curr_y][curr_x] &= ~1
+                grid[step_y][step_x] &= ~4
+            elif direc == 4:
+                grid[curr_y][curr_x] &= ~4
+                grid[step_y][step_x] &= ~1
+            elif direc == 2:
+                grid[curr_y][curr_x] &= ~2
+                grid[step_y][step_x] &= ~8
+            elif direc == 8:
+                grid[curr_y][curr_x] &= ~8
+                grid[step_y][step_x] &= ~2
+    counter = 0
+    for cell_y in range(len(visited)):
+        for cell_x in range(len(visited[0])):
+            if visited[cell_y][cell_x] == True:
+                counter += 1
+    print(counter)
+    return grid, visited
 
-
-def draw_grid(grid: list[list]):
+        
+""" def draw_grid(grid: list[list]):
     for row in grid:
-        print("".join(row))
+        print("".join(row)) """
 
 
 if __name__ == "__main__":
-    width: int = 21
-    height: int = 21
+    width: int = 5
+    height: int = 5
     entry: tuple = (0,0)
     exit: tuple = (7,14)
     grid = create_grid(width, height)
     carve_maze(grid, entry, exit)
-    draw_grid(grid)
+    #draw_grid(grid)
