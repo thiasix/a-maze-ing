@@ -60,12 +60,6 @@ def carve_maze(
             elif direc == 8:
                 grid[curr_y][curr_x] &= ~8
                 grid[step_y][step_x] &= ~2
-    counter = 0
-    for cell_y in range(len(visited)):
-        for cell_x in range(len(visited[0])):
-            if visited[cell_y][cell_x] == True:
-                counter += 1
-    print(counter)
     return grid, visited
 
         
