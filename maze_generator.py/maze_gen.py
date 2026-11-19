@@ -34,9 +34,9 @@ class MazeGenerator:
                    ["42", "42", "42", "--", "42", "42", "42"],
                    ["--", "--", "42", "--", "42", "--", "--"],
                    ["--", "--", "42", "--", "42", "42", "42"]]
-        if self.height > 6 and self.width > 8:
-            centre_height = (self.height - 6) // 2
-            centre_width = (self.width - 8) // 2
+        if self.height > 7 and self.width > 9:
+            centre_height = (self.height - 7) // 2
+            centre_width = (self.width - 9) // 2
             for y in range(len(pattern)):
                 for x in range(len(pattern[0])):
                     current = pattern[y][x]
@@ -47,15 +47,30 @@ class MazeGenerator:
         else:
             print("The maze is too small to include '42'")
 
-    def entry_exit_valid(self):
-        en_x, en_y = self.entry
+    def entry_exit_valid(self) -> bool:
+        entry_x, entry_y = self.entry
+        exit_x, exit_y = self.exit
         valid = True
-        if en_y < 0 or en_y > self.height - 1:
+        # validating entry and exit coordinates in same cell
+        if self.entry == self.exit:
             valid = False
-        if en_x < 0 or en_x > self.width - 1:
-            vaid = False
+        # validating entry coordinates
+        if entry_y < 0 or entry_y > self.height - 1:
+            valid = False
+        if entry_x < 0 or entry_x > self.width - 1:
+            valid = False
+        # validating exit coordinates
+        if exit_y < 0 or exit_y > self.height - 1:
+            valid = False
+        if exit_x < 0 or exit_x > self.width - 1:
+            valid = False
+        # validating entry and exit coordinates in 42 pattern
+        if valid:
+            if self.visited[entry_y][entry_x]:
+                valid = False
+            if self.visited[exit_y][exit_x]:
+                valid = False
         return valid
-        
 
     def carve_maze(self) -> None:
         entry_x, entry_y = self.entry
@@ -98,11 +113,20 @@ class MazeGenerator:
                     self.grid[curr_y][curr_x] &= ~8
                     self.grid[step_y][step_x] &= ~2
 
+    def carve_pacman():
+        for y in self.grid:
+            for x in self.grid:
+                if cell[y][x] == 14:
+                    if 
+
     def maze_maker(self) -> None:
         self.create_grid()
         self.forty_two()
         valid = self.entry_exit_valid()
         if not valid:
-            print("Maze not valid")
+            print("Invalid maze creation parameters")
         else:
-            self.carve_maze()
+            if self.perfect:
+                self.carve_maze()
+            else:
+                self.carve_pacman()
