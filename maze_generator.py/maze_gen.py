@@ -9,24 +9,29 @@ class MazeGenerator:
         self.seed: int | None = config.get("SEED", None)
         self.grid = None
         self.visited = None
+        self.blocked = None
         self.entry: tuple[int, int] = config["ENTRY"]
         self.exit: tuple[int, int] = config["EXIT"]
         self.perfect: bool = config.get("PERFECT", False)
         self.output_file = config["OUTPUT_FILE"]
         self.random_generator = random.Random(self.seed)
 
-    def create_grid(self) -> tuple[list[list[int]], list[list[bool]]]:
+    def create_grid(self) -> tuple[list[list[int]], list[list[bool]], list[list[bool]]]:
         self.grid = []
         self.visited = []
+        self.blocked = []
         for y in range(self.height):
             row = []
             visit_row = []
+            block_row = []
             for x in range(self.width):
                 row.append(15)
                 visit_row.append(False)
+                block_row.append(False)
             self.grid.append(row)
             self.visited.append(visit_row)
-        return self.grid, self.visited
+            self.blocked.append(block_row)
+        return self.grid, self.visited, self.blocked
 
     def forty_two(self) -> None:
         pattern = [["42", "--", "--", "--", "42", "42", "42"],
@@ -43,7 +48,7 @@ class MazeGenerator:
                     if current == "42":
                         maze_y = centre_height + y
                         maze_x = centre_width + x
-                        self.visited[maze_y][maze_x] = True
+                        self.blocked[maze_y][maze_x] = True
         else:
             print("The maze is too small to include '42'")
 
@@ -66,9 +71,9 @@ class MazeGenerator:
             valid = False
         # validating entry and exit coordinates in 42 pattern
         if valid:
-            if self.visited[entry_y][entry_x]:
+            if self.blocked[entry_y][entry_x]:
                 valid = False
-            if self.visited[exit_y][exit_x]:
+            if self.blocked[exit_y][exit_x]:
                 valid = False
         return valid
 
@@ -82,16 +87,16 @@ class MazeGenerator:
             curr_y, curr_x = current_cell
             neighbours: list[tuple[int, int, int]] = []
             # check NORTHERN neighbour
-            if curr_y > 0 and not self.visited[curr_y - 1][curr_x]:
+            if curr_y > 0 and not self.visited[curr_y - 1][curr_x] and not self.blocked[curr_y - 1][curr_x]:
                 neighbours.append((curr_y - 1, curr_x, 1))
             # check SOUTHERN neighbour
-            if curr_y < (len(self.grid) - 1) and not self.visited[curr_y + 1][curr_x]:
+            if curr_y < (len(self.grid) - 1) and not self.visited[curr_y + 1][curr_x] and not self.blocked[curr_y + 1][curr_x]:
                 neighbours.append((curr_y + 1, curr_x, 4))
             # check EASTERN neighbour
-            if curr_x < (len(self.grid[0]) - 1) and not self.visited[curr_y][curr_x + 1]:
+            if curr_x < (len(self.grid[0]) - 1) and not self.visited[curr_y][curr_x + 1] and not self.blocked[curr_y][curr_x + 1]:
                 neighbours.append((curr_y, curr_x + 1, 2))
             # check WESTERN neighbour
-            if curr_x > 0 and not self.visited[curr_y][curr_x - 1]:
+            if curr_x > 0 and not self.visited[curr_y][curr_x - 1] and not self.blocked[curr_y][curr_x - 1]:
                 neighbours.append((curr_y, curr_x - 1, 8))
             if not neighbours:
                 been_here_stack.pop()
@@ -100,24 +105,63 @@ class MazeGenerator:
                 step_y, step_x, direc = step
                 been_here_stack.append((step_y, step_x))
                 self.visited[step_y][step_x] = True
+                # north
                 if direc == 1:
                     self.grid[curr_y][curr_x] &= ~1
                     self.grid[step_y][step_x] &= ~4
+                # south
                 elif direc == 4:
                     self.grid[curr_y][curr_x] &= ~4
                     self.grid[step_y][step_x] &= ~1
+                # east
                 elif direc == 2:
                     self.grid[curr_y][curr_x] &= ~2
                     self.grid[step_y][step_x] &= ~8
+                # west
                 elif direc == 8:
                     self.grid[curr_y][curr_x] &= ~8
                     self.grid[step_y][step_x] &= ~2
 
-    def carve_pacman():
-        for y in self.grid:
-            for x in self.grid:
-                if cell[y][x] == 14:
-                    if 
+    def can_remove_wall(self, cell: tuple[int, int], direction: int) -> bool:
+        cell_y, cell_x = cell
+        neighbour_y = cell_y
+        neighbour_x = cell_x
+        opp_wall = 0
+        # check NORTHERN neighbour
+        if direction == 1:
+            neighbour_y -= 1
+            opp_wall = 4
+        # check EASTERN neighbour
+        elif direction == 2:
+            neighbour_x += 1
+            opp_wall = 8
+        # check SOUTHERN neighbour
+        elif direction == 4:
+            neighbour_y += 1
+            opp_wall = 1
+        # check WESTERN neighbour
+        elif direction == 8:
+            neighbour_x -= 1
+            opp_wall = 2
+        # boundary checks
+        if neighbour_y < 0 or neighbour_y > self.height - 1:
+            return False
+        if neighbour_x < 0 or neighbour_x > self.width - 1:
+            return False
+        # 42 blockage check
+        if self.blocked[cell_y][cell_x] or self.blocked[neighbour_y][neighbour_x]:
+            return False
+        # closed wall check
+        if not self.grid[cell_y][cell_x] & direction and not self.grid[neighbour_y][neighbour_x] & opp_wall:
+            return False
+        # 3x3 passage check
+        for row in range(self.height - 2):
+            if not self.grid[row][cell_x] & 2 and not self.grid[row][cell_x + 1] & 2
+                and not self.grid[row + 1][cell_x] & 4:
+                return False
+
+    def carve_pacman(self):
+        pass
 
     def maze_maker(self) -> None:
         self.create_grid()
