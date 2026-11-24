@@ -156,13 +156,141 @@ class MazeGenerator:
             return False
         return True
 
-        # 3x3 passage check
-    def verify_three_by_three(self, cell: tuple[int, int]) -> bool:
-        if cell == 1 and cell + 1 == 1 and (cell + 2 == 3 or cell + 2 == 1):
-        return True
+    # 3x3 passage check
+    def three_by_three(self, wall: tuple[int, int]) -> bool:
+        cell_y, cell_x = wall
+        if (# check first row, first cell east and south REVISE
+            self.grid[cell_y][cell_x] & 2 == 0
+            and self.grid[cell_y][cell_x] & 4 == 0
+            # check first row, second cell east and south
+            and self.grid[cell_y][cell_x + 1] & 2 == 0
+            and self.grid[cell_y][cell_x + 1] & 4 == 0
+            # check first row, third cell south
+            and self.grid[cell_y][cell_x + 2] & 4 == 0
+            # check second row, first cell east and south
+            and self.grid[cell_y + 1][cell_x] & 2 == 0
+            and self.grid[cell_y + 1][cell_x] & 4 == 0
+            # check second row, second cell east and south
+            and self.grid[cell_y + 1][cell_x + 1] & 2 == 0
+            and self.grid[cell_y + 1][cell_x + 1] & 4 == 0
+            # check second row, third cell south
+            and self.grid[cell_y + 1][cell_x + 2] & 4 == 0
+            # check third row, first cell east
+            and self.grid[cell_y + 2][cell_x] & 2 == 0
+            # check third row, second cell east
+            and self.grid[cell_y + 1][cell_x + 1] & 2 == 0
+            ):
+            return True
+        return False
+
+    def fortytwo_deadend(self, wall: tuple[int, int]):
+        y, x = wall
+        if self.blocked[y - 1][x] and self.blocked[y + 1][x]:
+            return True
+        return False
+
+    def throw_wall(self, wall: tuple[int, int], down: int) -> None:
+        y, x = wall
+        if down == 1:
+            self.grid[y][x] -= 1
+            self.grid[y - 1][x] -= 4
+        elif down == 2:
+            self.grid[y][x] -= 2
+            self.grid[y][x + 1] -= 8
+        elif down == 4:
+            self.grid[y][x] -= 4
+            self.grid[y + 1][x] -= 1
+        elif down == 8:
+            self.grid[y][x] -= 8
+            self.grid[y][x - 1] -= 2
+
+    def preserve_corners(self) -> None:
+        for y in self.grid:
+            for x in self.grid[0]:
+                # check and remove (0,0) east and south walls
+                if y == 0 and x == 0:
+                    if self.grid[y][x] & 2 > 0:
+                        self.grid[y][x] -= 2
+                        self.grid[y][x + 1] -= 8
+                    if self.grid[y][x] & 4 > 0:
+                        self.grid[y][x] -= 4
+                        self.grid[y + 1][x] -=1
+                # check and remove (0, width - 1) south and west walls
+                if y == 0 and x == self.width - 1:
+                    if self.grid[y][x] & 4 > 0:
+                        self.grid[y][x] -= 4
+                        self.grid[y + 1][x] -= 1
+                    if self.grid[y][x] & 8 > 0:
+                        self.grid[y][x] -= 8
+                        self.grid[y][x - 1] -= 2
+                # check and remove (height - 1, 0) east and north walls
+                if y == self.height - 1 and x == 0:
+                    if self.grid[y][x] & 2 > 0:
+                        self.grid[y][x] -= 2
+                        self.grid[y][x + 1] -= 8
+                    if self.grid[y][x] & 1 > 0:
+                        self.grid[y][x] -= 1
+                        self.grid[y - 1][x] -= 4
+                # check and remove (height - 1, width - 1) north and west walls
+                if y == self.height - 1 and x == self.width - 1:
+                    if self.grid[y][x] & 1 > 0:
+                        self.grid[y][x] -= 1
+                        self.grid[y - 1][x] -= 4
+                    if self.grid[y][x] & 8 > 0:
+                        self.grid[y][x] -= 8
+                        self.grid[y][x - 1] -= 2
 
     def carve_pacman(self):
-        pass
+        self.preserve_corners()
+        dead_ends: list[tuple[str, tuple[int, int]]] = []
+        north: list[int] = [4, 2, 8]
+        east: list[int] = [1, 4, 8]
+        south: list[int] = [8, 1, 2]
+        west = list[int] = [1, 4, 2]
+        # adding all dead ends to list
+        for y in range(len(self.grid)):
+            for x in range(len(self.grid[0])):
+                if self.grid[y][x] in (7, 11, 13, 14):
+                    # north check
+                    if self.grid[y][x] == 14:
+                        dead_ends.append(("north", (y,x)))
+                    # east check
+                    elif self.grid[y][x] == 13:
+                        dead_ends.append(("east", (y,x)))
+                    # south check
+                    elif self.grid[y][x] == 11:
+                        dead_ends.append(("south", (y,x)))
+                    # west check
+                    elif self.grid[y][x] == 7:
+                        dead_ends.append(("west", (y,x)))
+        # for each dead end, verify 3x3 passages and boundaries to down walls
+        for wall in dead_ends:
+            if not self.three_by_three(wall):
+                if (wall[0] == "north"
+                    and not self.fortytwo_deadend(wall[1])):
+                    down = random.choice(north)
+                    while not self.verify_boundaries(wall[1], down):
+                        down = random.choice(north)
+                    if self.verify_boundaries(wall[1], down):
+                        self.throw_wall(wall[1], down)
+                if (wall[0] == "east"
+                    and not self.fortytwo_deadend(wall[1])):
+                    down = random.choice(east)
+                    while not self.verify_boundaries(wall[1], down):
+                        down = random.choices(east)
+                    if self.verify_boundaries(wall[1], down):
+                        self.throw_wall(wall[1], down)
+                if (wall[0] == "south"
+                    and not self.fortytwo_deadend(wall[1], down)):
+                    down = random.choice(south)
+                    while not self.verify_boundaries(wall[1], down):
+                        down = random.choices(south)
+                    if self.verify_boundaries(wall[1], down):
+                        self.throw_wall(wall[1], down)
+                if wall[0] == "west":
+                    down = random.choice(west)
+                    if self.verify_boundaries(wall[1], down):
+                        self.throw_wall(wall[1], down)
 
     def maze_maker(self) -> None:
         self.create_grid()
@@ -175,10 +303,4 @@ class MazeGenerator:
                 self.carve_maze()
             else:
                 self.carve_maze()
-                for y in self.grid:
-                    three_list_check = []
-                    for x in self.grid[0]:
-                        three_list_check += [self.grid[y][x]]
-                        if self.verify_boundaries(self.grid[y][x]) and self.three_by_three(
-                            self.grid[y][x], self.grid[y + 1][x], self.grid[y + 2][x]):
-                            self.carve_pacman()
+                self.carve_pacman()
