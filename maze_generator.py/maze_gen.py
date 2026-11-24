@@ -287,8 +287,11 @@ class MazeGenerator:
                         down = random.choices(south)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
-                if wall[0] == "west":
+                if (wall[0] == "west"
+                    and not self.fortytwo_deadend(wall[1], down)):
                     down = random.choice(west)
+                    while not self.verify_boundaries(wall[1], down):
+                        down = random.choice(west)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
 
