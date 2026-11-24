@@ -7,7 +7,7 @@ class MazeGenerator:
         self.height: int = config["HEIGHT"]
         self.width: int = config["WIDTH"]
         self.seed: int | None = config.get("SEED", None)
-        self.grid = None
+        self.grid: list[list[int]] = None
         self.visited = None
         self.blocked = None
         self.entry: tuple[int, int] = config["ENTRY"]
@@ -126,23 +126,18 @@ class MazeGenerator:
         cell_y, cell_x = cell
         neighbour_y = cell_y
         neighbour_x = cell_x
-        opp_wall = 0
         # assign NORTHERN neighbour
         if direction == 1:
             neighbour_y -= 1
-            opp_wall = 4
         # assign EASTERN neighbour
         elif direction == 2:
             neighbour_x += 1
-            opp_wall = 8
         # assign SOUTHERN neighbour
         elif direction == 4:
             neighbour_y += 1
-            opp_wall = 1
         # assign WESTERN neighbour
         elif direction == 8:
             neighbour_x -= 1
-            opp_wall = 2
         # boundary checks
         if neighbour_y < 0 or neighbour_y > self.height - 1:
             return False
@@ -150,9 +145,6 @@ class MazeGenerator:
             return False
         # 42 blockage check
         if self.blocked[cell_y][cell_x] or self.blocked[neighbour_y][neighbour_x]:
-            return False
-        # closed wall check
-        if not self.grid[cell_y][cell_x] & direction and not self.grid[neighbour_y][neighbour_x] & opp_wall:
             return False
         return True
 
@@ -281,14 +273,14 @@ class MazeGenerator:
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "south"
-                    and not self.fortytwo_deadend(wall[1], down)):
+                    and not self.fortytwo_deadend(wall[1])):
                     down = random.choice(south)
                     while not self.verify_boundaries(wall[1], down):
                         down = random.choices(south)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "west"
-                    and not self.fortytwo_deadend(wall[1], down)):
+                    and not self.fortytwo_deadend(wall[1])):
                     down = random.choice(west)
                     while not self.verify_boundaries(wall[1], down):
                         down = random.choice(west)
