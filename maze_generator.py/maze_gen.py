@@ -246,7 +246,7 @@ class MazeGenerator:
         north: list[int] = [4, 2, 8]
         east: list[int] = [1, 4, 8]
         south: list[int] = [8, 1, 2]
-        west = list[int] = [1, 4, 2]
+        west: list[int] = [1, 4, 2]
         # adding all dead ends to list
         for y in range(len(self.grid)):
             for x in range(len(self.grid[0])):
@@ -265,7 +265,7 @@ class MazeGenerator:
                         dead_ends.append(("west", (y,x)))
         # for each dead end, verify 3x3 passages and boundaries to down walls
         for wall in dead_ends:
-            if not self.three_by_three(wall):
+            if not self.three_by_three(wall[1]):
                 if (wall[0] == "north"
                     and not self.fortytwo_deadend(wall[1])):
                     down = random.choice(north)
