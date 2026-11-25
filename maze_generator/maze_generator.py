@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random
 from typing import Any
 
@@ -7,16 +9,18 @@ class MazeGenerator:
         self.height: int = config["HEIGHT"]
         self.width: int = config["WIDTH"]
         self.seed: int | None = config.get("SEED", None)
-        self.grid: list[list[int]] = None
-        self.visited = None
-        self.blocked = None
+        self.grid: list[list[int]]
+        self.visited: list[list[bool]]
+        self.blocked: list[list[bool]]
         self.entry: tuple[int, int] = config["ENTRY"]
         self.exit: tuple[int, int] = config["EXIT"]
         self.perfect: bool = config.get("PERFECT", False)
         self.output_file = config["OUTPUT_FILE"]
         self.random_generator = random.Random(self.seed)
 
-    def create_grid(self) -> tuple[list[list[int]], list[list[bool]], list[list[bool]]]:
+    def create_grid(self
+                    ) -> tuple[
+                        list[list[int]], list[list[bool]], list[list[bool]]]:
         self.grid = []
         self.visited = []
         self.blocked = []
@@ -40,8 +44,8 @@ class MazeGenerator:
                    ["--", "--", "42", "--", "42", "--", "--"],
                    ["--", "--", "42", "--", "42", "42", "42"]]
         if self.height > 7 and self.width > 9:
-            centre_height = (self.height - 7) // 2
-            centre_width = (self.width - 9) // 2
+            centre_height = (self.height - len(pattern)) // 2
+            centre_width = (self.width - len(pattern[0])) // 2
             for y in range(len(pattern)):
                 for x in range(len(pattern[0])):
                     current = pattern[y][x]
@@ -87,16 +91,22 @@ class MazeGenerator:
             curr_y, curr_x = current_cell
             neighbours: list[tuple[int, int, int]] = []
             # check NORTHERN neighbour
-            if curr_y > 0 and not self.visited[curr_y - 1][curr_x] and not self.blocked[curr_y - 1][curr_x]:
+            if (curr_y > 0 and not self.visited[curr_y - 1][curr_x]
+                    and not self.blocked[curr_y - 1][curr_x]):
                 neighbours.append((curr_y - 1, curr_x, 1))
             # check SOUTHERN neighbour
-            if curr_y < (len(self.grid) - 1) and not self.visited[curr_y + 1][curr_x] and not self.blocked[curr_y + 1][curr_x]:
+            if (curr_y < (len(self.grid) - 1)
+                    and not self.visited[curr_y + 1][curr_x]
+                    and not self.blocked[curr_y + 1][curr_x]):
                 neighbours.append((curr_y + 1, curr_x, 4))
             # check EASTERN neighbour
-            if curr_x < (len(self.grid[0]) - 1) and not self.visited[curr_y][curr_x + 1] and not self.blocked[curr_y][curr_x + 1]:
+            if (curr_x < (len(self.grid[0]) - 1)
+                    and not self.visited[curr_y][curr_x + 1]
+                    and not self.blocked[curr_y][curr_x + 1]):
                 neighbours.append((curr_y, curr_x + 1, 2))
             # check WESTERN neighbour
-            if curr_x > 0 and not self.visited[curr_y][curr_x - 1] and not self.blocked[curr_y][curr_x - 1]:
+            if (curr_x > 0 and not self.visited[curr_y][curr_x - 1]
+                    and not self.blocked[curr_y][curr_x - 1]):
                 neighbours.append((curr_y, curr_x - 1, 8))
             if not neighbours:
                 been_here_stack.pop()
@@ -144,14 +154,16 @@ class MazeGenerator:
         if neighbour_x < 0 or neighbour_x > self.width - 1:
             return False
         # 42 blockage check
-        if self.blocked[cell_y][cell_x] or self.blocked[neighbour_y][neighbour_x]:
+        if (self.blocked[cell_y][cell_x]
+                or self.blocked[neighbour_y][neighbour_x]):
             return False
         return True
 
     # 3x3 passage check
     def three_by_three(self, wall: tuple[int, int]) -> bool:
         cell_y, cell_x = wall
-        if (# check first row, first cell east and south REVISE
+        if (
+            # check first row, first cell east and south REVISE
             self.grid[cell_y][cell_x] & 2 == 0
             and self.grid[cell_y][cell_x] & 4 == 0
             # check first row, second cell east and south
@@ -175,7 +187,7 @@ class MazeGenerator:
             return True
         return False
 
-    def fortytwo_deadend(self, wall: tuple[int, int]):
+    def fortytwo_deadend(self, wall: tuple[int, int]) -> bool:
         y, x = wall
         if self.blocked[y - 1][x] and self.blocked[y + 1][x]:
             return True
@@ -197,8 +209,8 @@ class MazeGenerator:
             self.grid[y][x - 1] -= 2
 
     def preserve_corners(self) -> None:
-        for y in self.grid:
-            for x in self.grid[0]:
+        for y in range(len(self.grid)):
+            for x in range(len(self.grid[0])):
                 # check and remove (0,0) east and south walls
                 if y == 0 and x == 0:
                     if self.grid[y][x] & 2 > 0:
@@ -206,7 +218,7 @@ class MazeGenerator:
                         self.grid[y][x + 1] -= 8
                     if self.grid[y][x] & 4 > 0:
                         self.grid[y][x] -= 4
-                        self.grid[y + 1][x] -=1
+                        self.grid[y + 1][x] -= 1
                 # check and remove (0, width - 1) south and west walls
                 if y == 0 and x == self.width - 1:
                     if self.grid[y][x] & 4 > 0:
@@ -232,7 +244,7 @@ class MazeGenerator:
                         self.grid[y][x] -= 8
                         self.grid[y][x - 1] -= 2
 
-    def carve_pacman(self):
+    def carve_pacman(self) -> None:
         self.preserve_corners()
         dead_ends: list[tuple[str, tuple[int, int]]] = []
         north: list[int] = [4, 2, 8]
@@ -245,42 +257,42 @@ class MazeGenerator:
                 if self.grid[y][x] in (7, 11, 13, 14):
                     # north check
                     if self.grid[y][x] == 14:
-                        dead_ends.append(("north", (y,x)))
+                        dead_ends.append(("north", (y, x)))
                     # east check
                     elif self.grid[y][x] == 13:
-                        dead_ends.append(("east", (y,x)))
+                        dead_ends.append(("east", (y, x)))
                     # south check
                     elif self.grid[y][x] == 11:
-                        dead_ends.append(("south", (y,x)))
+                        dead_ends.append(("south", (y, x)))
                     # west check
                     elif self.grid[y][x] == 7:
-                        dead_ends.append(("west", (y,x)))
+                        dead_ends.append(("west", (y, x)))
         # for each dead end, verify 3x3 passages and boundaries to down walls
         for wall in dead_ends:
             if not self.three_by_three(wall[1]):
-                if (wall[0] == "north"
-                    and not self.fortytwo_deadend(wall[1])):
+                if (wall[0] == "north" and not self.fortytwo_deadend(
+                        wall[1])):
                     down = random.choice(north)
                     while not self.verify_boundaries(wall[1], down):
                         down = random.choice(north)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
-                if (wall[0] == "east"
-                    and not self.fortytwo_deadend(wall[1])):
+                if (wall[0] == "east" and not self.fortytwo_deadend(
+                        wall[1])):
                     down = random.choice(east)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choices(east)
+                        down = random.choice(east)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
-                if (wall[0] == "south"
-                    and not self.fortytwo_deadend(wall[1])):
+                if (wall[0] == "south" and not self.fortytwo_deadend(
+                        wall[1])):
                     down = random.choice(south)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choices(south)
+                        down = random.choice(south)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
-                if (wall[0] == "west"
-                    and not self.fortytwo_deadend(wall[1])):
+                if (wall[0] == "west" and not self.fortytwo_deadend(
+                        wall[1])):
                     down = random.choice(west)
                     while not self.verify_boundaries(wall[1], down):
                         down = random.choice(west)
