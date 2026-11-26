@@ -1,12 +1,40 @@
 #!/usr/bin/env python3
 
-""" This module provides tools for creating mazes. """
+"""This module provides tools to generate two types of mazes."""
 
 import random
 from typing import Any
 
 
 class MazeGenerator:
+    """
+    Provides the tools to create two types of mazes.
+
+    Attributes:
+    height (int): Height of the maze.
+    width (int): Width of the maze.
+    seed (int): Number that determines the pseudo-randomising potential
+    for reproducibility (optional).
+    grid (list of lists of ints): 2D list that represents the initial grid
+    for the creation of the maze. The ints represent the wall values of
+    each cell.
+    visited (list of lists of bool): 2D list that represents the cells visited
+    by the algorithm through the generation of passages. The bools represent
+    whether a cell has been checked.
+    blocked (list of lists of bool): 2D list that stores the 42 pattern within
+    the maze. The bools represent whether the cell is blocked by the pattern.
+    entry (tuple of two ints): Coordinates of the starting point of the
+    resolution path.
+    exit (tuple of two ints): Coordinates of the exit point of the resolution
+    path.
+    perfect (bool): Flag that indicates the type of maze. True indicates a
+    single resolution path maze. False indicates a Pacman-style board.
+    output_file (.txt): File that documents the cells in hexadecimal, the
+    entry and exit coordinates, and the path followed to resolution.
+    random_generator (random module): Stores the seed, if any, to determine
+    reproducibility.
+    """
+
     def __init__(self, config: dict[str, Any]) -> None:
         self.height: int = config["HEIGHT"]
         self.width: int = config["WIDTH"]
@@ -57,31 +85,6 @@ class MazeGenerator:
                         self.blocked[maze_y][maze_x] = True
         else:
             print("The maze is too small to include '42'")
-
-    def entry_exit_valid(self) -> bool:
-        entry_x, entry_y = self.entry
-        exit_x, exit_y = self.exit
-        valid = True
-        # validating entry and exit coordinates in same cell
-        if self.entry == self.exit:
-            valid = False
-        # validating entry coordinates
-        if entry_y < 0 or entry_y > self.height - 1:
-            valid = False
-        if entry_x < 0 or entry_x > self.width - 1:
-            valid = False
-        # validating exit coordinates
-        if exit_y < 0 or exit_y > self.height - 1:
-            valid = False
-        if exit_x < 0 or exit_x > self.width - 1:
-            valid = False
-        # validating entry and exit coordinates in 42 pattern
-        if valid:
-            if self.blocked[entry_y][entry_x]:
-                valid = False
-            if self.blocked[exit_y][exit_x]:
-                valid = False
-        return valid
 
     def carve_maze(self) -> None:
         entry_x, entry_y = self.entry
@@ -314,12 +317,8 @@ class MazeGenerator:
     def maze_maker(self) -> None:
         self.create_grid()
         self.forty_two()
-        valid = self.entry_exit_valid()
-        if not valid:
-            print("Invalid maze creation parameters")
+        if self.perfect:
+            self.carve_maze()
         else:
-            if self.perfect:
-                self.carve_maze()
-            else:
-                self.carve_maze()
-                self.carve_pacman()
+            self.carve_maze()
+            self.carve_pacman()

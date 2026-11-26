@@ -26,7 +26,9 @@ def render_ascii(
         grid: list[list[int]],
         entry: tuple[int, int],
         exit_post: tuple[int, int],
-        theme: dict[str, str], path: str = "",
+        theme: dict[str, str],
+        theme_42: dict[str, str],
+        path: str = "",
         show_path: bool = False) -> None:
     """Dibuja el laberinto en la terminal usando caracteres ASCII.
 
@@ -42,16 +44,17 @@ def render_ascii(
     entry_sq = theme["entry"]
     exit_sq = theme["exit"]
     reset = theme["reset"]
-    block_color = theme["block_42"]
+    block_color = theme_42["block_42"]
     fund_color = theme["fund"]
     path_theme = theme["path"]
+    fund_42 = theme_42["fund_42"]
 
     # coordenadas del camino
     path_coords = get_path_coords(entry, path) if show_path else set()
     # ruta completa
     route_nodes = path_coords | {entry, exit_post} if show_path else set()
     # mantiene la parte superior el laberinto cada vez que pinta
-    print("\033[H", end="")
+
     for y, row in enumerate(grid):
         top_line = ""
         mid_line = ""
@@ -91,7 +94,7 @@ def render_ascii(
 
             # miramos los bloques, entrada y salida y camino
             if is_42:
-                mid_line += "\033[48;5;207m" + "  " + reset
+                mid_line += fund_42 + "  " + reset
             elif (x, y) == entry:
                 mid_line += entry_sq + "  " + reset
             elif (x, y) == exit_post:

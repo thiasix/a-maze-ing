@@ -11,6 +11,7 @@ CL_DARK_GRAY = "\033[48;5;240m"
 CL_DARK_RED = "\033[48;5;88m"
 CL_LIGHT_RED = "\033[48;5;9m"
 CL_WINE_RED = "\033[48;5;52m"
+CL_PINK = "\033[48;5;207m"
 L_WHITE_FU = "\033[1;38;5;198;48;5;15m"
 L_WHITE_GREY = "\033[1;38;5;52;48;5;15m"
 L_WHITE_RED = "\033[1;38;5;245;48;5;15m"
@@ -31,6 +32,7 @@ THEMES: list[dict[str, str]] = [
         "prompt": L_PINK,
         "wall": CL_GRAY,
         "block_42": CL_FUCHSIA,
+        "fund_42": CL_PINK,
         "entry": CL_GREEN,
         "exit": CL_RED,
         "path": PATH_PINK,
@@ -42,13 +44,14 @@ THEMES: list[dict[str, str]] = [
         "title": L_WHITE_RED,
         "menu": L_WHITE,
         "prompt": L_GRAY,
-        "wall": CL_WHITE,
+        "wall": CL_BLACK,
         "block_42": CL_DARK_GRAY,
+        "fund_42": CL_PINK,
         "entry": CL_GREEN,
         "exit": CL_RED,
         "path": PATH_DARCK,
         "reset": RESET,
-        "fund": CL_BLACK,
+        "fund": CL_WHITE,
     },
     {
         "name": "RED",
@@ -57,10 +60,38 @@ THEMES: list[dict[str, str]] = [
         "prompt": L_RED,
         "wall": CL_DARK_RED,
         "block_42": CL_WINE_RED,
+        "fund_42": CL_PINK,
         "entry": CL_GREEN,
         "exit": CL_RED,
         "path": PATH_RED,
         "reset": RESET,
         "fund": CL_LIGHT_RED,
+    },
+]
+THEMES_42: list[dict[str, str]] = [
+    {
+        "name": "Pinck",
+        "block_42": CL_PINK,
+        "fund_42": CL_FUCHSIA,
+    },
+    {
+        "name": "black",
+        "block_42": CL_BLACK,
+        "fund_42": CL_DARK_GRAY,
+    },
+    {
+        "name": "RED",
+        "block_42": CL_RED,
+        "fund_42": CL_WINE_RED,
+    },
+    {
+        "name": "WHITE",
+        "block_42": CL_WHITE,
+        "fund_42": CL_GRAY,
+    },
+    {
+        "name": "WHITE",
+        "block_42": CL_WHITE,
+        "fund_42": CL_GRAY,
     },
 ]
