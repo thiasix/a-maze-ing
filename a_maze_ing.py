@@ -3,7 +3,7 @@
 import sys
 from typing import Any
 from config import load_config
-from maze_generator import MazeGenerator
+from maze_generator.maze_generator import MazeGenerator
 from render import render_ascii
 from output import save_maze
 from themes import THEMES
