@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+""" This module provides tools for creating mazes. """
+
 import random
 from typing import Any
 
@@ -275,37 +277,37 @@ class MazeGenerator:
             if not self.three_by_three(wall[1]):
                 if (wall[0] == "north" and not self.fortytwo_deadend(
                         wall[1])):
-                    down = random.choice(north)
+                    down = self.random_generator.choice(north)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choice(north)
+                        down = self.random_generator.choice(north)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "east" and not self.fortytwo_deadend(
                         wall[1])):
-                    down = random.choice(east)
+                    down = self.random_generator.choice(east)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choice(east)
+                        down = self.random_generator.choice(east)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "south" and not self.fortytwo_deadend(
                         wall[1])):
-                    down = random.choice(south)
+                    down = self.random_generator.choice(south)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choice(south)
+                        down = self.random_generator.choice(south)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "west" and not self.fortytwo_deadend(
                         wall[1])):
-                    down = random.choice(west)
+                    down = self.random_generator.choice(west)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choice(west)
+                        down = self.random_generator.choice(west)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
                 if (wall[0] == "closed" and not self.fortytwo_deadend(
                         wall[1])):
-                    down = random.choice(closed)
+                    down = self.random_generator.choice(closed)
                     while not self.verify_boundaries(wall[1], down):
-                        down = random.choice(closed)
+                        down = self.random_generator.choice(closed)
                     if self.verify_boundaries(wall[1], down):
                         self.throw_wall(wall[1], down)
 
@@ -321,4 +323,3 @@ class MazeGenerator:
             else:
                 self.carve_maze()
                 self.carve_pacman()
-
