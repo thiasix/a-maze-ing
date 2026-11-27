@@ -1,6 +1,8 @@
-#!/usr/bin/env python3
+"""Tools for the generation of two types of mazes.
 
-"""This module provides tools to generate two types of mazes."""
+This module contains the class that provides all the associated methods and
+validations for the creation of mazes.
+"""
 
 import random
 from typing import Any
@@ -11,31 +13,40 @@ class MazeGenerator:
     Provides the tools to create two types of mazes.
 
     Attributes:
-    height (int): Height of the maze.
-    width (int): Width of the maze.
-    seed (int): Number that determines the pseudo-randomising potential
-    for reproducibility (optional).
-    grid (list of lists of ints): 2D list that represents the initial grid
-    for the creation of the maze. The ints represent the wall values of
-    each cell.
-    visited (list of lists of bool): 2D list that represents the cells visited
-    by the algorithm through the generation of passages. The bools represent
-    whether a cell has been checked.
-    blocked (list of lists of bool): 2D list that stores the 42 pattern within
-    the maze. The bools represent whether the cell is blocked by the pattern.
-    entry (tuple of two ints): Coordinates of the starting point of the
-    resolution path.
-    exit (tuple of two ints): Coordinates of the exit point of the resolution
-    path.
-    perfect (bool): Flag that indicates the type of maze. True indicates a
-    single resolution path maze. False indicates a Pacman-style board.
-    output_file (.txt): File that documents the cells in hexadecimal, the
-    entry and exit coordinates, and the path followed to resolution.
-    random_generator (random module): Stores the seed, if any, to determine
-    reproducibility.
+        height (int): Height of the maze.
+        width (int): Width of the maze.
+        seed (int): Number to determine a pseudo-randomised specific maze
+            (optional).
+        grid (list of lists of ints): 2D list that represents the initial
+            grid for the creation of the maze. The ints represent the wall
+            values of each cell.
+        visited (list of lists of bool): 2D list that represents the cells
+            visited by the algorithm through the generation of passages.
+            The bools represent whether a cell has been checked.
+        blocked (list of lists of bool): 2D list that stores the 42 pattern
+            within the maze. The bools represent whether the cell is blocked
+            by the pattern.
+        entry (tuple of two ints): Coordinates of the starting point of the
+            resolution path.
+        exit (tuple of two ints): Coordinates of the exit point of the
+            resolution path.
+        perfect (bool): Flag that indicates the type of maze. True indicates
+            a single resolution path maze. False indicates a Pacman-style
+            board.
+        output_file (.txt): File that documents the cells in hexadecimal,
+            the entry and exit coordinates, and the path followed to
+            resolution.
+        random_generator (random module): Stores the seed, if any, to
+            determine reproducibility.
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """
+        Initialise a MazeGenerator object.
+        
+        Parameters:
+            config (dict of str keys and Any values): Maze creation values.
+        """
         self.height: int = config["HEIGHT"]
         self.width: int = config["WIDTH"]
         self.seed: int | None = config.get("SEED", None)
@@ -51,6 +62,14 @@ class MazeGenerator:
     def create_grid(self
                     ) -> tuple[
                         list[list[int]], list[list[bool]], list[list[bool]]]:
+        """
+        Creation of the initial grid upon which the maze will be carved.
+        
+        Returns:
+            tuple: three lists, first of maze cell initial values, second of
+            bool values for maze-carving visited cells, and third of bool
+            values to block the 42 pattern.
+        """
         self.grid = []
         self.visited = []
         self.blocked = []
@@ -68,6 +87,7 @@ class MazeGenerator:
         return self.grid, self.visited, self.blocked
 
     def forty_two(self) -> None:
+        """ Blocks cells belonging to the 42 pattern if size can fit it. """
         pattern = [["42", "--", "--", "--", "42", "42", "42"],
                    ["42", "--", "--", "--", "--", "--", "42"],
                    ["42", "42", "42", "--", "42", "42", "42"],
@@ -87,6 +107,7 @@ class MazeGenerator:
             print("The maze is too small to include '42'")
 
     def carve_maze(self) -> None:
+        """ Carves the PERFECT maze by using Depth-First Search. """
         entry_x, entry_y = self.entry
         been_here_stack: list[tuple[int, int]] = []
         been_here_stack.append((entry_y, entry_x))
@@ -138,6 +159,16 @@ class MazeGenerator:
                     self.grid[step_y][step_x] &= ~2
 
     def verify_boundaries(self, cell: tuple[int, int], direction: int) -> bool:
+        """
+        Verifies boundaries and potential 42 placement of cell and of neighbouring cell.
+
+        Arguments:
+            cell (tuple of ints): Coordinates of cell.
+            direction (int): direction towards neighbouring cell.
+        
+        Returns:
+            bool: True if wall can be removed. False if it can't.
+        """
         cell_y, cell_x = cell
         neighbour_y = cell_y
         neighbour_x = cell_x
@@ -164,8 +195,16 @@ class MazeGenerator:
             return False
         return True
 
-    # 3x3 passage check
     def three_by_three(self, wall: tuple[int, int]) -> bool:
+        """
+        Verifies whether removing a wall creates a forbidden 3x3 passage.
+
+        Arguments:
+            wall (tuple of ints): Coordinates of cell.
+        
+        Returns:
+            bool: True if removing wall creates 3x3 passage. False if it doesn't.
+        """
         cell_y, cell_x = wall
         if (
             # check first row, first cell east and south REVISE
@@ -193,12 +232,28 @@ class MazeGenerator:
         return False
 
     def fortytwo_deadend(self, wall: tuple[int, int]) -> bool:
+        """
+        Verifies if dead end is inside the shape of the 2 in the 42 pattern.
+
+        Arguments:
+            wall (tuple of ints): Coordinates of cell.
+        
+        Returns:
+            bool: True if dead end belongs to the pattern. False if it doesn't.
+        """
         y, x = wall
         if self.blocked[y - 1][x] and self.blocked[y + 1][x]:
             return True
         return False
 
     def throw_wall(self, wall: tuple[int, int], down: int) -> None:
+        """
+        Removes walls.
+
+        Arguments:
+            wall (tuple of ints): Coordinates of cell.
+            down (int): Bit number of the cell wall to remove.
+        """
         y, x = wall
         if down == 1:
             self.grid[y][x] &= ~1
@@ -214,6 +269,7 @@ class MazeGenerator:
             self.grid[y][x - 1] &= ~2
 
     def preserve_corners(self) -> None:
+        """ Removes walls of corners of maze to create open corners. """
         for y in range(len(self.grid)):
             for x in range(len(self.grid[0])):
                 # check and remove (0,0) east and south walls
@@ -250,6 +306,7 @@ class MazeGenerator:
                         self.grid[y][x - 1] &= ~2
 
     def carve_pacman(self) -> None:
+        """ Accounts for all dead ends in maze and removes walls to create connectivity. """
         self.preserve_corners()
         dead_ends: list[tuple[str, tuple[int, int]]] = []
         north: list[int] = [4, 2, 8]
@@ -315,6 +372,7 @@ class MazeGenerator:
                         self.throw_wall(wall[1], down)
 
     def maze_maker(self) -> None:
+        """ Employs the maze-creation methods in the order necessary to create the mazes. """
         self.create_grid()
         self.forty_two()
         if self.perfect:
