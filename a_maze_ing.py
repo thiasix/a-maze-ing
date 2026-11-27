@@ -5,9 +5,9 @@ from typing import Any
 from parcer import load_config
 from maze_generator.maze_generator import MazeGenerator
 from render import render_ascii
-from save_maze import save_maze
+from maze_generator.save_maze import save_maze
 from themes import THEMES, THEMES_42
-from solve_maze import solve_maze
+from maze_generator.solve_maze import solve_maze
 
 
 def create_and_save(
